@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Idol Project: Starry Road</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            background-color: #fce4ec;
+            overflow-x: hidden;
+        }
+
+        .stat-bar {
+            transition: width 0.5s ease-out;
+        }
+
+        .idol-card {
+            background: linear-gradient(135deg, #ffffff 0%, #fff0f5 100%);
+            border: 4px solid #f06292;
+        }
+
+        .btn-action {
+            transition: transform 0.1s active, background-color 0.2s;
+        }
+
+        .btn-action:active {
+            transform: scale(0.95);
+        }
+
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* アニメーション用クラス */
+        .gain-effect {
+            position: absolute;
+            animation: floatUp 1s ease-out forwards;
+            color: #e91e63;
+            font-weight: bold;
+            pointer-events: none;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-50px); }
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 flex flex-col items-center">
+
+    <!-- Header -->
+    <header class="w-full max-w-md bg-white rounded-2xl shadow-md p-4 mb-4 flex justify-between items-center border-b-4 border-pink-300">
+        <h1 class="text-xl font-bold text-pink-600">Starry Road</h1>
+        <div class="text-right">
+            <p class="text-xs text-gray-500">週目</p>
+            <p id="week-display" class="text-lg font-bold text-gray-800">1 / 52</p>
+        </div>
+    </header>
+
+    <!-- Main Game Area -->
+    <main class="w-full max-w-md bg-white rounded-3xl shadow-xl overflow-hidden idol-card relative">
+        <!-- Idol Profile Section -->
+        <div class="p-6 text-center border-b border-pink-100 bg-white/50">
+            <div class="relative inline-block mb-4">
+                <div class="w-32 h-32 bg-pink-200 rounded-full mx-auto flex items-center justify-center border-4 border-white shadow-inner overflow-hidden">
+                    <span id="idol-emoji" class="text-6xl pulse-animation">🎤</span>
+                </div>
+                <div class="absolute bottom-0 right-0 bg-white px-2 py-1 rounded-full shadow text-xs font-bold text-pink-500 border border-pink-200">
+                    Lv.<span id="level-display">1</span>
+                </div>
+            </div>
+            <h2 id="idol-name" class="text-2xl font-bold text-gray-800">新人アイドル</h2>
+            <p id="idol-title" class="text-pink-400 text-sm font-semibold">ドリーム・ビギナー</p>
+        </div>
+
+        <!-- Stats Section -->
+        <div class="p-6 space-y-4">
+            <!-- Stamina -->
+            <div>
+                <div class="flex justify-between text-sm mb-1">
+                    <span class="font-bold text-gray-600">体力 (STAMINA)</span>
+                    <span id="stamina-text" class="text-gray-800">100 / 100</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                    <div id="stamina-bar" class="bg-green-400 h-full stat-bar" style="width: 100%"></div>
+                </div>
+            </div>
+
+            <!-- Skills -->
+            <div class="grid grid-cols-3 gap-2">
+                <div class="bg-blue-50 p-2 rounded-xl text-center border border-blue-100">
+                    <p class="text-[10px] text-blue-500 font-bold">DANCE</p>
+                    <p id="dance-val" class="text-lg font-bold text-blue-700">10</p>
+                </div>
+                <div class="bg-red-50 p-2 rounded-xl text-center border border-red-100">
+                    <p class="text-[10px] text-red-500 font-bold">VOCAL</p>
+                    <p id="vocal-val" class="text-lg font-bold text-red-700">10</p>
+                </div>
+                <div class="bg-yellow-50 p-2 rounded-xl text-center border border-yellow-100">
+                    <p class="text-[10px] text-yellow-600 font-bold">VISUAL</p>
+                    <p id="visual-val" class="text-lg font-bold text-yellow-800">10</p>
+                </div>
+            </div>
+
+            <!-- Fans -->
+            <div class="bg-pink-50 p-4 rounded-2xl flex justify-between items-center border border-pink-100">
+                <span class="text-pink-600 font-bold">ファン数</span>
+                <span id="fan-count" class="text-xl font-bold text-pink-700">0 人</span>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div id="action-grid" class="p-4 grid grid-cols-2 gap-3 bg-pink-50/50">
+            <button onclick="train('dance')" class="btn-action bg-white border-2 border-blue-400 text-blue-500 p-3 rounded-2xl font-bold shadow-sm hover:bg-blue-50">
+                💃 ダンス特訓
+            </button>
+            <button onclick="train('vocal')" class="btn-action bg-white border-2 border-red-400 text-red-500 p-3 rounded-2xl font-bold shadow-sm hover:bg-red-50">
+                🎙️ ボイトレ
+            </button>
+            <button onclick="train('visual')" class="btn-action bg-white border-2 border-yellow-400 text-yellow-600 p-3 rounded-2xl font-bold shadow-sm hover:bg-yellow-50">
+                💄 メイク研究
+            </button>
+            <button onclick="rest()" class="btn-action bg-white border-2 border-green-400 text-green-500 p-3 rounded-2xl font-bold shadow-sm hover:bg-green-50">
+                🛌 オフの日
+            </button>
+            <button onclick="live()" class="col-span-2 btn-action bg-pink-500 text-white p-4 rounded-2xl font-bold shadow-lg text-lg hover:bg-pink-600">
+                ✨ ライブ開催！
+            </button>
+        </div>
+    </main>
+
+    <!-- Message Overlay -->
+    <div id="log-container" class="w-full max-w-md mt-4 space-y-2">
+        <!-- Messages will appear here -->
+    </div>
+
+    <!-- Modal for Result -->
+    <div id="result-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-3xl w-full max-w-xs p-8 text-center fade-in">
+            <h3 id="modal-title" class="text-2xl font-bold mb-4 text-pink-600">プロデュース終了</h3>
+            <div id="modal-content" class="space-y-3 mb-6">
+                <!-- Result stats -->
+            </div>
+            <button onclick="resetGame()" class="w-full bg-pink-500 text-white py-3 rounded-xl font-bold">最初からやり直す</button>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        const state = {
+            week: 1,
+            maxWeeks: 52,
+            stamina: 100,
+            maxStamina: 100,
+            skills: {
+                dance: 10,
+                vocal: 10,
+                visual: 10
+            },
+            fans: 0,
+            level: 1,
+            isGameOver: false
+        };
+
+        const titles = [
+            { minFans: 0, name: "ドリーム・ビギナー" },
+            { minFans: 1000, name: "期待の新人" },
+            { minFans: 5000, name: "ライブハウスの星" },
+            { minFans: 20000, name: "メディアの寵児" },
+            { minFans: 100000, name: "トップアイドル" },
+            { minFans: 500000, name: "伝説のミューズ" }
+        ];
+
+        // Sound-like visual feedback
+        function showFloatingText(text, containerId = 'idol-emoji') {
+            const container = document.getElementById(containerId).parentElement;
+            const effect = document.createElement('div');
+            effect.className = 'gain-effect';
+            effect.innerText = text;
+            effect.style.left = '50%';
+            effect.style.top = '20%';
+            container.appendChild(effect);
+            setTimeout(() => effect.remove(), 1000);
+        }
+
+        function updateUI() {
+            document.getElementById('week-display').innerText = `${state.week} / ${state.maxWeeks}`;
+            document.getElementById('stamina-text').innerText = `${state.stamina} / ${state.maxStamina}`;
+            document.getElementById('stamina-bar').style.width = `${state.stamina}%`;
+            
+            // Color feedback for stamina
+            if (state.stamina < 30) {
+                document.getElementById('stamina-bar').className = 'bg-red-400 h-full stat-bar';
+            } else {
+                document.getElementById('stamina-bar').className = 'bg-green-400 h-full stat-bar';
+            }
+
+            document.getElementById('dance-val').innerText = state.skills.dance;
+            document.getElementById('vocal-val').innerText = state.skills.vocal;
+            document.getElementById('visual-val').innerText = state.skills.visual;
+            document.getElementById('fan-count').innerText = `${state.fans.toLocaleString()} 人`;
+            
+            // Level and Title calculation
+            state.level = Math.floor((state.skills.dance + state.skills.vocal + state.skills.visual) / 15);
+            document.getElementById('level-display').innerText = state.level;
+
+            const title = [...titles].reverse().find(t => state.fans >= t.minFans);
+            document.getElementById('idol-title').innerText = title ? title.name : titles[0].name;
+        }
+
+        function addLog(message, type = 'info') {
+            const logContainer = document.getElementById('log-container');
+            const log = document.createElement('div');
+            const colors = {
+                info: 'bg-white text-gray-700 border-l-4 border-blue-400',
+                success: 'bg-green-50 text-green-700 border-l-4 border-green-400',
+                warning: 'bg-yellow-50 text-yellow-700 border-l-4 border-yellow-400',
+                error: 'bg-red-50 text-red-700 border-l-4 border-red-400',
+                live: 'bg-pink-100 text-pink-700 border-l-4 border-pink-500 font-bold'
+            };
+            log.className = `${colors[type]} p-3 rounded-lg shadow-sm text-sm fade-in mb-2`;
+            log.innerText = message;
+            logContainer.prepend(log);
+
+            // Keep only latest 3 logs
+            if (logContainer.childNodes.length > 3) {
+                logContainer.removeChild(logContainer.lastChild);
+            }
+        }
+
+        function train(type) {
+            if (state.stamina < 20) {
+                addLog("体力が足りません！休みましょう。", "error");
+                return;
+            }
+
+            const gain = 5 + Math.floor(Math.random() * 6); // 5-10
+            state.skills[type] += gain;
+            state.stamina -= 20;
+            
+            const messages = {
+                dance: "ダンスのキレが増しました！",
+                vocal: "歌声が安定してきました。",
+                visual: "表情管理が上達しました！"
+            };
+            
+            addLog(`${messages[type]} (${type.toUpperCase()} +${gain})`, "success");
+            showFloatingText(`+${gain} UP`);
+            nextWeek();
+        }
+
+        function rest() {
+            const recovery = 40;
+            state.stamina = Math.min(state.maxStamina, state.stamina + recovery);
+            addLog("しっかり休んで体力が回復しました！", "info");
+            showFloatingText(`STAMINA RESTORED`);
+            nextWeek();
+        }
+
+        function live() {
+            if (state.stamina < 30) {
+                addLog("体力が低すぎてライブを完走できません！", "error");
+                return;
+            }
+
+            // Simple score calculation based on all skills
+            const baseScore = state.skills.dance + state.skills.vocal + state.skills.visual;
+            const variation = 0.8 + (Math.random() * 0.4); // 80% to 120%
+            const newFans = Math.floor(baseScore * 10 * variation);
+            
+            state.fans += newFans;
+            state.stamina -= 30;
+            
+            addLog(`ライブ大成功！ ${newFans.toLocaleString()}人の新規ファンを獲得！`, "live");
+            showFloatingText(`✨ FAN +${newFans} ✨`);
+            nextWeek();
+        }
+
+        function nextWeek() {
+            state.week++;
+            if (state.week > state.maxWeeks) {
+                endGame();
+            }
+            updateUI();
+        }
+
+        function endGame() {
+            state.isGameOver = true;
+            const modal = document.getElementById('result-modal');
+            const content = document.getElementById('modal-content');
+            
+            const title = document.getElementById('idol-title').innerText;
+            
+            content.innerHTML = `
+                <p class="text-gray-500">最終結果</p>
+                <div class="text-4xl my-4">🏆</div>
+                <p class="text-xl font-bold text-pink-600">${title}</p>
+                <div class="bg-gray-50 p-4 rounded-xl text-left text-sm space-y-1">
+                    <div class="flex justify-between"><span>総ファン数:</span> <b>${state.fans.toLocaleString()}人</b></div>
+                    <div class="flex justify-between"><span>ダンス:</span> <b>${state.skills.dance}</b></div>
+                    <div class="flex justify-between"><span>ボーカル:</span> <b>${state.skills.vocal}</b></div>
+                    <div class="flex justify-between"><span>ビジュアル:</span> <b>${state.skills.visual}</b></div>
+                </div>
+                <p class="text-xs text-gray-400 mt-4">1年間のプロデュースお疲れ様でした！</p>
+            `;
+            
+            modal.style.display = 'flex';
+        }
+
+        function resetGame() {
+            state.week = 1;
+            state.stamina = 100;
+            state.skills = { dance: 10, vocal: 10, visual: 10 };
+            state.fans = 0;
+            state.isGameOver = false;
+            
+            document.getElementById('log-container').innerHTML = '';
+            document.getElementById('result-modal').style.display = 'none';
+            addLog("新シーズンの始まりです！トップアイドルを目指しましょう！", "info");
+            updateUI();
+        }
+
+        // Initialize
+        window.onload = () => {
+            updateUI();
+            addLog("プロデュース開始！まずはトレーニングで実力をつけましょう。", "info");
+        };
+    </script>
+</body>
+</html>
